@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Environment Variables Manager</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 1000px; 
+            margin: 50px auto; 
+            padding: 20px; 
+            background: #f5f5f5;
+        }
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .section { 
+            background: white;
+            margin: 20px 0; 
+            padding: 20px; 
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .form-group { margin: 15px 0; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #333; }
+        input, select, textarea { 
+            width: 100%; 
+            padding: 10px; 
+            border: 1px solid #ddd; 
+            border-radius: 4px; 
+            font-size: 14px;
+        }
+        button { 
+            background: #007bff; 
+            color: white; 
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer; 
+            font-size: 14px;
+            margin-right: 10px;
+        }
+        button:hover { background: #0056b3; }
+        button.danger { background: #dc3545; }
+        button.danger:hover { background: #c82333; }
+        button.secondary { background: #6c757d; }
+        button.secondary:hover { background: #545b62; }
+        .env-item {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+            background: #f8f9fa;
+        }
+        .env-key { 
+            font-weight: bold; 
+            color: #007bff; 
+            font-size: 16px;
+        }
+        .env-value { 
+            margin: 8px 0;
+            font-family: monospace;
+            background: white;
+            padding: 8px;
+            border: 1px solid #eee;
+            border-radius: 3px;
+        }
+        .env-description { 
+            color: #666; 
+            font-style: italic;
+            font-size: 13px;
+        }
+        .result { 
+            margin-top: 15px; 
+            padding: 15px; 
+            border-radius: 4px; 
+            max-height: 300px; 
+            overflow-y: auto; 
+        }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .actions { margin-top: 10px; }
+        .masked { color: #999; font-style: italic; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔒 Claude Environment Variables Manager</h1>
+        <p>Manage isolated Claude CLI environment variables. These variables are stored separately from system environment variables.</p>
+    </div>
+
+    <!-- JWT Token Input -->
+    <div class="section">
+        <h2>🔑 Authentication</h2>
+        <div class="form-group">
+            <label for="token">JWT Token:</label>
+            <input type="password" id="token" placeholder="Enter your JWT token here">
+        </div>
+        <button onclick="loadEnvVars()">Load Environment Variables</button>
+    </div>
+
+    <!-- Add/Update Environment Variable -->
+    <div class="section">
+        <h2>➕ Add/Update Environment Variable</h2>
+        <div class="form-group">
+            <label for="newKey">Key:</label>
+            <input type="text" id="newKey" placeholder="e.g., ANTHROPIC_AUTH_TOKEN" list="common-keys">
+            <datalist id="common-keys">
+                <option value="ANTHROPIC_AUTH_TOKEN">
+                <option value="ANTHROPIC_BASE_URL">
+                <option value="ANTHROPIC_MODEL">
+                <option value="ANTHROPIC_SMALL_FAST_MODEL">
+            </datalist>
+        </div>
+        <div class="form-group">
+            <label for="newValue">Value:</label>
+            <textarea id="newValue" rows="3" placeholder="Environment variable value"></textarea>
+        </div>
+        <div class="form-group">
+            <label for="newDescription">Description (optional):</label>
+            <input type="text" id="newDescription" placeholder="Brief description of this variable">
+        </div>
+        <button onclick="setEnvVar()">Set Variable</button>
+        <button class="secondary" onclick="clearForm()">Clear Form</button>
+    </div>
+
+    <!-- Bulk Operations -->
+    <div class="section">
+        <h2>📦 Bulk Operations</h2>
+        <button onclick="resetToDefaults()">Reset to Defaults</button>
+        <button class="secondary" onclick="exportEnvVars()">Export Variables</button>
+        <div class="form-group" style="margin-top: 15px;">
+            <label for="importData">Import Variables (JSON format):</label>
+            <textarea id="importData" rows="4" placeholder='{"ANTHROPIC_AUTH_TOKEN": "value", "ANTHROPIC_MODEL": "model"}'></textarea>
+        </div>
+        <button onclick="importEnvVars()">Import Variables</button>
+    </div>
+
+    <!-- Current Environment Variables -->
+    <div class="section">
+        <h2>📋 Current Environment Variables</h2>
+        <div id="envVarsList">
+            <div class="warning">Click "Load Environment Variables" to see current variables</div>
+        </div>
+    </div>
+
+    <!-- Results -->
+    <div id="result" class="result" style="display: none;"></div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000/api';
+
+        function getToken() {
+            const token = document.getElementById('token').value.trim();
+            if (!token) {
+                showResult('Please enter JWT token first', 'error');
+                return null;
+            }
+            return token;
+        }
+
+        function showResult(message, type = 'success') {
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.className = `result ${type}`;
+            resultDiv.innerHTML = message;
+            setTimeout(() => {
+                resultDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        async function loadEnvVars() {
+            const token = getToken();
+            if (!token) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/claude-env`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    displayEnvVars(result.envVars);
+                    showResult(`✅ Loaded ${result.envVars.length} environment variables`, 'success');
+                } else {
+                    showResult(`❌ Error: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ Network error: ${error.message}`, 'error');
+            }
+        }
+
+        function displayEnvVars(envVars) {
+            const listDiv = document.getElementById('envVarsList');
+            
+            if (envVars.length === 0) {
+                listDiv.innerHTML = '<div class="warning">No environment variables found</div>';
+                return;
+            }
+
+            listDiv.innerHTML = envVars.map(env => `
+                <div class="env-item">
+                    <div class="env-key">${env.key}</div>
+                    <div class="env-value ${env.value === '***HIDDEN***' ? 'masked' : ''}">${env.value || '<empty>'}</div>
+                    ${env.description ? `<div class="env-description">${env.description}</div>` : ''}
+                    <div class="actions">
+                        <button onclick="editEnvVar('${env.key}', '${env.description || ''}')">Edit</button>
+                        <button class="danger" onclick="deleteEnvVar('${env.key}')">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function editEnvVar(key, description) {
+            document.getElementById('newKey').value = key;
+            document.getElementById('newDescription').value = description;
+            document.getElementById('newValue').focus();
+        }
+
+        async function setEnvVar() {
+            const token = getToken();
+            if (!token) return;
+
+            const key = document.getElementById('newKey').value.trim();
+            const value = document.getElementById('newValue').value;
+            const description = document.getElementById('newDescription').value.trim();
+
+            if (!key) {
+                showResult('❌ Please enter a key', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/claude-env/${key}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ value, description })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showResult(`✅ ${result.message}`, 'success');
+                    clearForm();
+                    loadEnvVars(); // Reload the list
+                } else {
+                    showResult(`❌ Error: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ Network error: ${error.message}`, 'error');
+            }
+        }
+
+        async function deleteEnvVar(key) {
+            if (!confirm(`Are you sure you want to delete '${key}'?`)) return;
+
+            const token = getToken();
+            if (!token) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/claude-env/${key}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showResult(`✅ ${result.message}`, 'success');
+                    loadEnvVars(); // Reload the list
+                } else {
+                    showResult(`❌ Error: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ Network error: ${error.message}`, 'error');
+            }
+        }
+
+        function clearForm() {
+            document.getElementById('newKey').value = '';
+            document.getElementById('newValue').value = '';
+            document.getElementById('newDescription').value = '';
+        }
+
+        async function resetToDefaults() {
+            if (!confirm('Are you sure you want to reset all environment variables to defaults?')) return;
+
+            const token = getToken();
+            if (!token) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/claude-env/reset`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showResult(`✅ ${result.message}`, 'success');
+                    loadEnvVars(); // Reload the list
+                } else {
+                    showResult(`❌ Error: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ Network error: ${error.message}`, 'error');
+            }
+        }
+
+        function exportEnvVars() {
+            // This would need to get the actual values, not the masked ones
+            showResult('⚠️ Export feature would need to handle sensitive values carefully', 'warning');
+        }
+
+        async function importEnvVars() {
+            const token = getToken();
+            if (!token) return;
+
+            const importData = document.getElementById('importData').value.trim();
+            if (!importData) {
+                showResult('❌ Please enter JSON data to import', 'error');
+                return;
+            }
+
+            try {
+                const envVars = JSON.parse(importData);
+                
+                const response = await fetch(`${API_BASE}/claude-env/bulk`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ envVars })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showResult(`✅ ${result.message}`, 'success');
+                    document.getElementById('importData').value = '';
+                    loadEnvVars(); // Reload the list
+                } else {
+                    showResult(`❌ Error: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                if (error instanceof SyntaxError) {
+                    showResult('❌ Invalid JSON format', 'error');
+                } else {
+                    showResult(`❌ Network error: ${error.message}`, 'error');
+                }
+            }
+        }
+    </script>
+</body>
+</html>
