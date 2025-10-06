@@ -6,22 +6,18 @@
  */
 
 import { Elysia, t } from "elysia";
-import { authGuard, jwtConfig } from "../middleware/auth.ts";
-import { 
-  getAllClaudeEnvVars, 
-  getClaudeEnvVar, 
-  setClaudeEnvVar, 
+import {
+  getAllClaudeEnvVars,
+  getClaudeEnvVar,
+  setClaudeEnvVar,
   deleteClaudeEnvVar,
-  bulkUpdateClaudeEnvVars 
-} from "../database/claudeEnv.ts";
+  bulkUpdateClaudeEnvVars
+} from "../services/claudeEnvMemory.ts";
 
 export default new Elysia()
-  .use(jwtConfig)
 
   // Get all Claude environment variables
-  .get("/", async ({ headers, jwt, set }) => {
-    const authResult = await authGuard({ jwt, headers, set });
-    if (authResult.error) return authResult;
+  .get("/", async ({ set }) => {
 
     try {
       const envVars = getAllClaudeEnvVars();
@@ -49,9 +45,7 @@ export default new Elysia()
   })
 
   // Get specific Claude environment variable
-  .get("/:key", async ({ params, headers, jwt, set }) => {
-    const authResult = await authGuard({ jwt, headers, set });
-    if (authResult.error) return authResult;
+  .get("/:key", async ({ params, set }) => {
 
     try {
       const { key } = params;
@@ -88,9 +82,7 @@ export default new Elysia()
   })
 
   // Set Claude environment variable
-  .put("/:key", async ({ params, body, headers, jwt, set }) => {
-    const authResult = await authGuard({ jwt, headers, set });
-    if (authResult.error) return authResult;
+  .put("/:key", async ({ params, body, set }) => {
 
     try {
       const { key } = params;
@@ -131,9 +123,7 @@ export default new Elysia()
   })
 
   // Delete Claude environment variable
-  .delete("/:key", async ({ params, headers, jwt, set }) => {
-    const authResult = await authGuard({ jwt, headers, set });
-    if (authResult.error) return authResult;
+  .delete("/:key", async ({ params, set }) => {
 
     try {
       const { key } = params;
@@ -164,9 +154,7 @@ export default new Elysia()
   })
 
   // Bulk update Claude environment variables
-  .post("/bulk", async ({ body, headers, jwt, set }) => {
-    const authResult = await authGuard({ jwt, headers, set });
-    if (authResult.error) return authResult;
+  .post("/bulk", async ({ body, set }) => {
 
     try {
       const { envVars } = body as { envVars: Record<string, string> };

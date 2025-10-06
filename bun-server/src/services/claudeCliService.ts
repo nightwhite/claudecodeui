@@ -10,7 +10,7 @@ import { spawn, type ChildProcess } from 'child_process';
 import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
-import { getClaudeEnvRecord } from '../database/claudeEnv.ts';
+import { getClaudeEnvAsRecord } from './claudeEnvMemory.ts';
 
 export interface ClaudeSpawnOptions {
   sessionId?: string;
@@ -324,12 +324,12 @@ export async function spawnClaude(
       }
     }
 
-    // Get Claude environment variables from database (NOT from system env)
-    const claudeDbEnvVars = getClaudeEnvRecord();
-    console.log('🔒 Using isolated Claude environment variables:', Object.keys(claudeDbEnvVars));
+    // Get Claude environment variables from memory (NOT from system env)
+    const claudeMemoryEnvVars = getClaudeEnvAsRecord();
+    console.log('🔒 Using isolated Claude environment variables:', Object.keys(claudeMemoryEnvVars));
     
-    // Apply Claude environment variables from database
-    Object.assign(claudeEnv, claudeDbEnvVars);
+    // Apply Claude environment variables from memory
+    Object.assign(claudeEnv, claudeMemoryEnvVars);
 
     // Apply custom environment variables from options (highest priority)
     if (options.env) {

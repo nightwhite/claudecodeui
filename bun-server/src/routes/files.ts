@@ -6,16 +6,12 @@
  */
 
 import { Elysia, t } from "elysia";
-import { authGuard, jwtConfig } from "../middleware/auth.ts";
 import { readSystemFile, saveSystemFile, serveSystemBinaryFile } from "../services/fileOperations.ts";
 
 export default new Elysia()
-  .use(jwtConfig)
 
   // Read system file content (absolute path only)
-  .get("/", async ({ query, headers, jwt, set }) => {
-    const authResult = await authGuard({ jwt, headers, set });
-    if (authResult.error) return authResult;
+  .get("/", async ({ query, set }) => {
 
     try {
       const { filePath } = query as { filePath?: string };
@@ -55,9 +51,7 @@ export default new Elysia()
   })
 
   // Save system file content (absolute path only)
-  .put("/", async ({ body, headers, jwt, set }) => {
-    const authResult = await authGuard({ jwt, headers, set });
-    if (authResult.error) return authResult;
+  .put("/", async ({ body, set }) => {
 
     try {
       const { filePath, content } = body as { 
@@ -106,9 +100,7 @@ export default new Elysia()
   })
 
   // Serve system binary file content (absolute path only)
-  .get("/content", async ({ query, headers, jwt, set }) => {
-    const authResult = await authGuard({ jwt, headers, set });
-    if (authResult.error) return authResult;
+  .get("/content", async ({ query, set }) => {
 
     try {
       const { filePath } = query as { filePath?: string };

@@ -7,7 +7,6 @@
  */
 
 import { Elysia, t } from "elysia";
-import { authGuard, jwtConfig } from "../middleware/auth.ts";
 
 interface TranscriptionResponse {
   text: string;
@@ -26,12 +25,9 @@ interface OpenAICompletionResponse {
 }
 
 export default new Elysia()
-  .use(jwtConfig)
 
   // Audio transcription endpoint
-  .post("/", async ({ request, headers, jwt, set }) => {
-    const authResult = await authGuard({ jwt, headers, set });
-    if (authResult.error) return authResult;
+  .post("/", async ({ request, set }) => {
 
     try {
       // Parse multipart form data from request

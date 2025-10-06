@@ -6,12 +6,10 @@
  */
 
 import { Elysia } from "elysia";
-import { jwtConfig, authenticateWebSocket } from "../middleware/auth.ts";
 import { spawnClaude, abortClaudeSession, type ClaudeSpawnOptions } from "../services/claudeCliService.ts";
 import { addProjectWatcherClient, removeProjectWatcherClient } from "../services/projectWatcherService.ts";
 
 export default new Elysia()
-  .use(jwtConfig)
 
   // Main chat WebSocket endpoint - handles both Claude commands and project updates
   .ws("/ws", {

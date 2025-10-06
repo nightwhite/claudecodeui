@@ -1,5 +1,4 @@
 import { Elysia, t } from "elysia";
-import { authGuard, jwtConfig } from "../middleware/auth.ts";
 import { discoverProjects } from "../services/projectDiscovery.ts";
 import {
   getClaudeSessions,
@@ -10,12 +9,8 @@ import { addProjectManually, deleteProject, renameProject } from "../services/pr
 import { readProjectFile, saveProjectFile, getProjectFileTree, serveProjectBinaryFile } from "../services/fileOperations.ts";
 
 export default new Elysia()
-  .use(jwtConfig)
   // Get all projects
-  .get("/", async ({ headers, jwt, set }) => {
-    // Apply auth guard
-    const authResult = await authGuard({ jwt, headers, set });
-    if (authResult.error) return authResult;
+  .get("/", async ({ set }) => {
 
     try {
       console.log('📋 Fetching projects...');
@@ -37,9 +32,7 @@ export default new Elysia()
   })
 
   // Get project sessions
-  .get("/:projectName/sessions", async ({ params, query, headers, jwt, set }) => {
-    const authResult = await authGuard({ jwt, headers, set });
-    if (authResult.error) return authResult;
+  .get("/:projectName/sessions", async ({ params, query, set }) => {
 
     try {
       const { projectName } = params;
@@ -75,9 +68,7 @@ export default new Elysia()
   })
 
   // Get session messages
-  .get("/:projectName/sessions/:sessionId/messages", async ({ params, query, headers, jwt, set }) => {
-    const authResult = await authGuard({ jwt, headers, set });
-    if (authResult.error) return authResult;
+  .get("/:projectName/sessions/:sessionId/messages", async ({ params, query, set }) => {
 
     try {
       const { projectName, sessionId } = params;
@@ -121,9 +112,7 @@ export default new Elysia()
   })
 
   // Create new project
-  .post("/create", async ({ body, headers, jwt, set }) => {
-    const authResult = await authGuard({ jwt, headers, set });
-    if (authResult.error) return authResult;
+  .post("/create", async ({ body, set }) => {
 
     try {
       const { path: projectPath } = body as { path: string };
@@ -156,9 +145,7 @@ export default new Elysia()
   })
 
   // Rename project
-  .put("/:projectName/rename", async ({ params, body, headers, jwt, set }) => {
-    const authResult = await authGuard({ jwt, headers, set });
-    if (authResult.error) return authResult;
+  .put("/:projectName/rename", async ({ params, body, set }) => {
 
     try {
       const { projectName } = params;
@@ -190,9 +177,7 @@ export default new Elysia()
   })
 
   // Delete session
-  .delete("/:projectName/sessions/:sessionId", async ({ params, headers, jwt, set }) => {
-    const authResult = await authGuard({ jwt, headers, set });
-    if (authResult.error) return authResult;
+  .delete("/:projectName/sessions/:sessionId", async ({ params, set }) => {
 
     try {
       const { projectName, sessionId } = params;
@@ -221,9 +206,7 @@ export default new Elysia()
   })
 
   // Delete project
-  .delete("/:projectName", async ({ params, headers, jwt, set }) => {
-    const authResult = await authGuard({ jwt, headers, set });
-    if (authResult.error) return authResult;
+  .delete("/:projectName", async ({ params, set }) => {
 
     try {
       const { projectName } = params;
@@ -251,9 +234,7 @@ export default new Elysia()
   })
 
   // Read project file content (relative path only)
-  .get("/:projectName/file", async ({ params, query, headers, jwt, set }) => {
-    const authResult = await authGuard({ jwt, headers, set });
-    if (authResult.error) return authResult;
+  .get("/:projectName/file", async ({ params, query, set }) => {
 
     try {
       const { projectName } = params;
@@ -297,9 +278,7 @@ export default new Elysia()
   })
 
   // Save project file content (relative path only)
-  .put("/:projectName/file", async ({ params, body, headers, jwt, set }) => {
-    const authResult = await authGuard({ jwt, headers, set });
-    if (authResult.error) return authResult;
+  .put("/:projectName/file", async ({ params, body, set }) => {
 
     try {
       const { projectName } = params;
@@ -352,9 +331,7 @@ export default new Elysia()
   })
 
   // Get project file tree
-  .get("/:projectName/files", async ({ params, headers, jwt, set }) => {
-    const authResult = await authGuard({ jwt, headers, set });
-    if (authResult.error) return authResult;
+  .get("/:projectName/files", async ({ params, set }) => {
 
     try {
       const { projectName } = params;
@@ -389,9 +366,7 @@ export default new Elysia()
   })
 
   // Serve project binary file content (relative path only)
-  .get("/:projectName/files/content", async ({ params, query, headers, jwt, set }) => {
-    const authResult = await authGuard({ jwt, headers, set });
-    if (authResult.error) return authResult;
+  .get("/:projectName/files/content", async ({ params, query, set }) => {
 
     try {
       const { projectName } = params;
@@ -438,10 +413,8 @@ export default new Elysia()
     }
   })
 
-  // Upload images to project  
-  .post("/:projectName/upload-images", async ({ params, request, headers, jwt, set }) => {
-    const authResult = await authGuard({ jwt, headers, set });
-    if (authResult.error) return authResult;
+  // Upload images to project
+  .post("/:projectName/upload-images", async ({ params, request, set }) => {
 
     try {
       const { projectName } = params;

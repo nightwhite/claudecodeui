@@ -3,18 +3,21 @@
 ## ✅ **已完成的核心功能**
 
 ### 🔐 **认证系统**
+
 - **用户注册/登录** - JWT token 认证
 - **密码哈希** - bcrypt 安全加密
 - **认证状态检查** - 实时 token 验证
 - **Swagger 认证** - Bearer Token 支持
 
 ### 🗄️ **数据库系统**
+
 - **SQLite 集成** - 使用 `bun:sqlite` 原生支持
 - **用户管理** - 完整的 CRUD 操作
 - **数据库初始化** - 自动表结构创建
 - **错误处理** - 优雅的异常处理
 
 ### 📁 **项目发现系统**
+
 - **Claude 项目扫描** - 自动发现 `~/.claude/projects/`
 - **项目路径提取** - 从 JSONL 文件解析实际路径
 - **显示名称生成** - 从 package.json 或路径生成友好名称
@@ -22,12 +25,14 @@
 - **缓存机制** - 提高重复查询性能
 
 ### 💬 **会话管理系统**
+
 - **Claude 会话** - JSONL 文件解析和分页
 - **Cursor 会话** - SQLite 数据库读取
 - **消息获取** - 支持分页的消息检索
 - **会话元数据** - 消息数量、最后活动时间等
 
 ### 🌐 **API 端点**
+
 - **GET /api/health** - 健康检查
 - **GET /api/config** - 服务器配置
 - **POST /api/auth/register** - 用户注册
@@ -39,6 +44,7 @@
 - **GET /api/projects/:name/sessions/:id/messages** - 会话消息
 
 ### 📚 **API 文档**
+
 - **Swagger UI** - 完整的 API 文档界面
 - **JWT 认证集成** - 可在 Swagger 中测试认证
 - **请求/响应示例** - 详细的 API 规范
@@ -46,16 +52,19 @@
 ## 🚀 **性能优势**
 
 ### **启动速度**
+
 - **Bun 运行时** - 比 Node.js 快 3-4x
 - **原生 TypeScript** - 无需编译步骤
 - **内置功能** - 减少依赖加载时间
 
 ### **内存使用**
+
 - **更少依赖** - Bun 内置很多功能
 - **优化的 SQLite** - `bun:sqlite` 原生集成
 - **智能缓存** - 项目发现结果缓存
 
 ### **开发体验**
+
 - **热重载** - 文件变化自动重启
 - **TypeScript 原生** - 完整类型支持
 - **更好的错误信息** - 清晰的错误堆栈
@@ -63,7 +72,8 @@
 ## 🏗️ **技术架构**
 
 ### **核心技术栈**
-```
+
+```txt
 Bun Runtime + Elysia Framework
 ├── 认证: @elysiajs/jwt + bcryptjs
 ├── 数据库: bun:sqlite
@@ -73,7 +83,8 @@ Bun Runtime + Elysia Framework
 ```
 
 ### **文件结构**
-```
+
+```txt
 bun-server/
 ├── src/
 │   ├── database/
@@ -97,6 +108,7 @@ bun-server/
 ## 🧪 **测试状态**
 
 ### **已测试功能**
+
 - ✅ 服务器启动和热重载
 - ✅ 数据库连接和初始化
 - ✅ JWT 认证流程
@@ -106,6 +118,7 @@ bun-server/
 - ✅ 错误处理机制
 
 ### **测试命令**
+
 ```bash
 # 启动服务器
 bun dev
@@ -126,12 +139,14 @@ curl -H "Authorization: Bearer <token>" http://localhost:3000/api/projects
 ## 📋 **下一步计划**
 
 ### **即将实现**
+
 1. **Claude CLI 集成** - 进程管理和命令执行
 2. **WebSocket 功能** - 实时聊天和终端
 3. **文件系统操作** - 文件读写和监控
 4. **MCP 服务器管理** - Model Context Protocol 支持
 
 ### **高级功能**
+
 1. **音频转录** - OpenAI Whisper 集成
 2. **Git 操作** - 版本控制集成
 3. **文件上传** - 图像和文档处理
@@ -139,7 +154,7 @@ curl -H "Authorization: Bearer <token>" http://localhost:3000/api/projects
 
 ## 🎯 **迁移完成度**
 
-```
+```txt
 总体进度: ████████░░ 80%
 
 ✅ 基础架构: 100%

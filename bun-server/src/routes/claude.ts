@@ -7,11 +7,9 @@
  */
 
 import { Elysia, t } from "elysia";
-import { authGuard, jwtConfig } from "../middleware/auth.ts";
 import { spawnClaude, abortClaudeSession, getActiveClaudeSessions, type ClaudeSpawnOptions } from "../services/claudeCliService.ts";
 
 export default new Elysia()
-  .use(jwtConfig)
 
   // WebSocket endpoint for Claude CLI communication
   .ws("/ws", {
@@ -65,9 +63,7 @@ export default new Elysia()
   })
 
   // REST API endpoint to spawn Claude CLI (alternative to WebSocket)
-  .post("/spawn", async ({ body, headers, jwt, set }) => {
-    const authResult = await authGuard({ jwt, headers, set });
-    if (authResult.error) return authResult;
+  .post("/spawn", async ({ body, set }) => {
 
     try {
       const { command, options } = body as {
@@ -138,9 +134,7 @@ export default new Elysia()
   })
 
   // Abort Claude session endpoint
-  .post("/abort/:sessionId", async ({ params, headers, jwt, set }) => {
-    const authResult = await authGuard({ jwt, headers, set });
-    if (authResult.error) return authResult;
+  .post("/abort/:sessionId", async ({ params, set }) => {
 
     try {
       const { sessionId } = params;
@@ -179,9 +173,7 @@ export default new Elysia()
   })
 
   // Get active Claude sessions (for debugging/monitoring)
-  .get("/sessions", async ({ headers, jwt, set }) => {
-    const authResult = await authGuard({ jwt, headers, set });
-    if (authResult.error) return authResult;
+  .get("/sessions", async ({ set }) => {
 
     try {
       const sessionsInfo = getActiveClaudeSessions();
