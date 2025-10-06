@@ -23,7 +23,7 @@ import { BrowserRouter as Router, Routes, Route, useNavigate, useParams } from '
 import Sidebar from './components/Sidebar';
 import MainContent from './components/MainContent';
 import MobileNav from './components/MobileNav';
-import ToolsSettings from './components/ToolsSettings';
+import Settings from './components/Settings';
 import QuickSettingsPanel from './components/QuickSettingsPanel';
 
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -33,6 +33,7 @@ import { TasksSettingsProvider } from './contexts/TasksSettingsContext';
 import { WebSocketProvider, useWebSocketContext } from './contexts/WebSocketContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import { useVersionCheck } from './hooks/useVersionCheck';
+import useLocalStorage from './hooks/useLocalStorage';
 import { api, authenticatedFetch } from './utils/api';
 
 
@@ -52,24 +53,12 @@ function AppContent() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isLoadingProjects, setIsLoadingProjects] = useState(true);
   const [isInputFocused, setIsInputFocused] = useState(false);
-  const [showToolsSettings, setShowToolsSettings] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [showQuickSettings, setShowQuickSettings] = useState(false);
-  const [autoExpandTools, setAutoExpandTools] = useState(() => {
-    const saved = localStorage.getItem('autoExpandTools');
-    return saved !== null ? JSON.parse(saved) : false;
-  });
-  const [showRawParameters, setShowRawParameters] = useState(() => {
-    const saved = localStorage.getItem('showRawParameters');
-    return saved !== null ? JSON.parse(saved) : false;
-  });
-  const [autoScrollToBottom, setAutoScrollToBottom] = useState(() => {
-    const saved = localStorage.getItem('autoScrollToBottom');
-    return saved !== null ? JSON.parse(saved) : true;
-  });
-  const [sendByCtrlEnter, setSendByCtrlEnter] = useState(() => {
-    const saved = localStorage.getItem('sendByCtrlEnter');
-    return saved !== null ? JSON.parse(saved) : false;
-  });
+  const [autoExpandTools, setAutoExpandTools] = useLocalStorage('autoExpandTools', false);
+  const [showRawParameters, setShowRawParameters] = useLocalStorage('showRawParameters', false);
+  const [autoScrollToBottom, setAutoScrollToBottom] = useLocalStorage('autoScrollToBottom', true);
+  const [sendByCtrlEnter, setSendByCtrlEnter] = useLocalStorage('sendByCtrlEnter', false);
   // Session Protection System: Track sessions with active conversations to prevent
   // automatic project updates from interrupting ongoing chats. When a user sends
   // a message, the session is marked as "active" and project updates are paused
@@ -77,6 +66,37 @@ function AppContent() {
   const [activeSessions, setActiveSessions] = useState(new Set()); // Track sessions with active conversations
   
   const { ws, sendMessage, messages } = useWebSocketContext();
+  
+  // Detect if running as PWA
+  const [isPWA, setIsPWA] = useState(false);
+  
+  useEffect(() => {
+    // Check if running in standalone mode (PWA)
+    const checkPWA = () => {
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+                          window.navigator.standalone ||
+                          document.referrer.includes('android-app://');
+      setIsPWA(isStandalone);
+      
+      // Add class to html and body for CSS targeting
+      if (isStandalone) {
+        document.documentElement.classList.add('pwa-mode');
+        document.body.classList.add('pwa-mode');
+      } else {
+        document.documentElement.classList.remove('pwa-mode');
+        document.body.classList.remove('pwa-mode');
+      }
+    };
+    
+    checkPWA();
+    
+    // Listen for changes
+    window.matchMedia('(display-mode: standalone)').addEventListener('change', checkPWA);
+    
+    return () => {
+      window.matchMedia('(display-mode: standalone)').removeEventListener('change', checkPWA);
+    };
+  }, []);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -460,9 +480,10 @@ function AppContent() {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center">
         {/* Backdrop */}
-        <div 
+        <button
           className="fixed inset-0 bg-black/50 backdrop-blur-sm"
           onClick={() => setShowVersionModal(false)}
+          aria-label="Close version upgrade modal"
         />
         
         {/* Modal */}
@@ -556,11 +577,13 @@ function AppContent() {
               onProjectDelete={handleProjectDelete}
               isLoading={isLoadingProjects}
               onRefresh={handleSidebarRefresh}
-              onShowSettings={() => setShowToolsSettings(true)}
+              onShowSettings={() => setShowSettings(true)}
               updateAvailable={updateAvailable}
               latestVersion={latestVersion}
               currentVersion={currentVersion}
               onShowVersionModal={() => setShowVersionModal(true)}
+              isPWA={isPWA}
+              isMobile={isMobile}
             />
           </div>
         </div>
@@ -571,7 +594,7 @@ function AppContent() {
         <div className={`fixed inset-0 z-50 flex transition-all duration-150 ease-out ${
           sidebarOpen ? 'opacity-100 visible' : 'opacity-0 invisible'
         }`}>
-          <div 
+          <button
             className="fixed inset-0 bg-background/80 backdrop-blur-sm transition-opacity duration-150 ease-out"
             onClick={(e) => {
               e.stopPropagation();
@@ -582,11 +605,13 @@ function AppContent() {
               e.stopPropagation();
               setSidebarOpen(false);
             }}
+            aria-label="Close sidebar"
           />
           <div 
-            className={`relative w-[85vw] max-w-sm sm:w-80 bg-card border-r border-border h-full transform transition-transform duration-150 ease-out ${
+            className={`relative w-[85vw] max-w-sm sm:w-80 bg-card border-r border-border transform transition-transform duration-150 ease-out ${
               sidebarOpen ? 'translate-x-0' : '-translate-x-full'
             }`}
+            style={{ height: 'calc(100vh - 80px)' }}
             onClick={(e) => e.stopPropagation()}
             onTouchStart={(e) => e.stopPropagation()}
           >
@@ -601,18 +626,20 @@ function AppContent() {
               onProjectDelete={handleProjectDelete}
               isLoading={isLoadingProjects}
               onRefresh={handleSidebarRefresh}
-              onShowSettings={() => setShowToolsSettings(true)}
+              onShowSettings={() => setShowSettings(true)}
               updateAvailable={updateAvailable}
               latestVersion={latestVersion}
               currentVersion={currentVersion}
               onShowVersionModal={() => setShowVersionModal(true)}
+              isPWA={isPWA}
+              isMobile={isMobile}
             />
           </div>
         </div>
       )}
 
       {/* Main Content Area - Flexible */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className={`flex-1 flex flex-col min-w-0 ${isMobile && !isInputFocused ? 'pb-16' : ''}`}>
         <MainContent
           selectedProject={selectedProject}
           selectedSession={selectedSession}
@@ -622,6 +649,7 @@ function AppContent() {
           sendMessage={sendMessage}
           messages={messages}
           isMobile={isMobile}
+          isPWA={isPWA}
           onMenuClick={() => setSidebarOpen(true)}
           isLoading={isLoadingProjects}
           onInputFocusChange={setIsInputFocused}
@@ -629,7 +657,7 @@ function AppContent() {
           onSessionInactive={markSessionAsInactive}
           onReplaceTemporarySession={replaceTemporarySession}
           onNavigateToSession={(sessionId) => navigate(`/session/${sessionId}`)}
-          onShowSettings={() => setShowToolsSettings(true)}
+          onShowSettings={() => setShowSettings(true)}
           autoExpandTools={autoExpandTools}
           showRawParameters={showRawParameters}
           autoScrollToBottom={autoScrollToBottom}
@@ -651,33 +679,21 @@ function AppContent() {
           isOpen={showQuickSettings}
           onToggle={setShowQuickSettings}
           autoExpandTools={autoExpandTools}
-          onAutoExpandChange={(value) => {
-            setAutoExpandTools(value);
-            localStorage.setItem('autoExpandTools', JSON.stringify(value));
-          }}
+          onAutoExpandChange={setAutoExpandTools}
           showRawParameters={showRawParameters}
-          onShowRawParametersChange={(value) => {
-            setShowRawParameters(value);
-            localStorage.setItem('showRawParameters', JSON.stringify(value));
-          }}
+          onShowRawParametersChange={setShowRawParameters}
           autoScrollToBottom={autoScrollToBottom}
-          onAutoScrollChange={(value) => {
-            setAutoScrollToBottom(value);
-            localStorage.setItem('autoScrollToBottom', JSON.stringify(value));
-          }}
+          onAutoScrollChange={setAutoScrollToBottom}
           sendByCtrlEnter={sendByCtrlEnter}
-          onSendByCtrlEnterChange={(value) => {
-            setSendByCtrlEnter(value);
-            localStorage.setItem('sendByCtrlEnter', JSON.stringify(value));
-          }}
+          onSendByCtrlEnterChange={setSendByCtrlEnter}
           isMobile={isMobile}
         />
       )}
 
-      {/* Tools Settings Modal */}
-      <ToolsSettings
-        isOpen={showToolsSettings}
-        onClose={() => setShowToolsSettings(false)}
+      {/* Settings Modal */}
+      <Settings
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
         projects={projects}
       />
 
