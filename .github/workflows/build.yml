@@ -11,8 +11,27 @@ permissions:
 
 jobs:
   build:
-    name: Build All Platforms
-    runs-on: ubuntu-latest
+    name: Build ${{ matrix.platform }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: Linux x64
+            build_script: build:linux
+            artifact_name: xcoding-cli-linux
+          - os: macos-13
+            platform: macOS x64
+            build_script: build:macos
+            artifact_name: xcoding-cli-macos
+          - os: macos-latest
+            platform: macOS ARM64
+            build_script: build:macos-arm
+            artifact_name: xcoding-cli-macos-arm64
+          - os: windows-latest
+            platform: Windows x64
+            build_script: build:windows
+            artifact_name: xcoding-cli.exe
 
     steps:
       - name: Checkout code
@@ -26,25 +45,14 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      - name: Build for Linux x64
-        run: bun run build:linux
+      - name: Build binary
+        run: bun run ${{ matrix.build_script }}
 
-      - name: Build for macOS x64
-        run: bun run build:macos
-
-      - name: Build for macOS ARM64
-        run: bun run build:macos-arm
-
-      - name: Build for Windows x64
-        run: bun run build:windows
-
-      - name: Upload artifacts
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: xcoding-cli-all-platforms
-          path: |
-            build/*
-            !build/*.DS_Store
+          name: ${{ matrix.artifact_name }}
+          path: build/${{ matrix.artifact_name }}
 
   release:
     name: Create Release
@@ -53,16 +61,18 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
 
     steps:
-      - name: Download artifacts
+      - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          name: xcoding-cli-all-platforms
           path: artifacts
+
+      - name: Display structure
+        run: ls -R artifacts
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: artifacts/*
+          files: artifacts/*/*
           draft: false
           prerelease: false
           generate_release_notes: true
