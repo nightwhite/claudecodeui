@@ -1,285 +1,388 @@
-<div align="center">
-  <img src="public/logo.svg" alt="Claude Code UI" width="64" height="64">
-  <h1>Claude Code UI</h1>
-</div>
+# Claude Code UI - Bun Server
 
+基于 Bun + Elysia 的高性能 Claude Code CLI Web 服务器。
 
-A desktop and mobile UI for [Claude Code](https://docs.anthropic.com/en/docs/claude-code), and [Cursor CLI](https://docs.cursor.com/en/cli/overview). You can use it locally or remotely to view your active projects and sessions in Claude Code or Cursor and make changes to them from everywhere (mobile or desktop). This gives you a proper interface that works everywhere. Supports models including **Claude Sonnet 4**, **Opus 4.1**, and **GPT-5**
+## 技术栈
 
-## Screenshots
+- **Runtime**: [Bun](https://bun.sh/) - 高性能 JavaScript 运行时
+- **Web Framework**: [ElysiaJS](https://elysiajs.com/) - 超快速的 TypeScript Web 框架
+- **Database**: SQLite3 - 轻量级数据库
+- **WebSocket**: 原生 Bun WebSocket - 实时通信
+- **Plugins**: [CORS](https://elysiajs.com/plugins/cors.html), [JWT](https://elysiajs.com/plugins/jwt.html), [Static](https://elysiajs.com/plugins/static.html)
 
-<div align="center">
-  
-<table>
-<tr>
-<td align="center">
-<h3>Desktop View</h3>
-<img src="public/screenshots/desktop-main.png" alt="Desktop Interface" width="400">
-<br>
-<em>Main interface showing project overview and chat</em>
-</td>
-<td align="center">
-<h3>Mobile Experience</h3>
-<img src="public/screenshots/mobile-chat.png" alt="Mobile Interface" width="250">
-<br>
-<em>Responsive mobile design with touch navigation</em>
-</td>
-</tr>
-<tr>
-<td align="center" colspan="2">
-<h3>CLI Selection</h3>
-<img src="public/screenshots/cli-selection.png" alt="CLI Selection" width="400">
-<br>
-<em>Select between Claude Code and Cursor CLI</em>
-</td>
-</tr>
-</table>
+## 快速开始
 
-
-
-</div>
-
-## Features
-
-- **Responsive Design** - Works seamlessly across desktop, tablet, and mobile so you can also use Claude Code from mobile 
-- **Interactive Chat Interface** - Built-in chat interface for seamless communication with Claude Code or Cursor
-- **Integrated Shell Terminal** - Direct access to Claude Code or Cursor CLI through built-in shell functionality
-- **File Explorer** - Interactive file tree with syntax highlighting and live editing
-- **Git Explorer** - View, stage and commit your changes. You can also switch branches 
-- **Session Management** - Resume conversations, manage multiple sessions, and track history
-- **TaskMaster AI Integration** *(Optional)* - Advanced project management with AI-powered task planning, PRD parsing, and workflow automation
-- **Model Compatibility** - Works with Claude Sonnet 4, Opus 4.1, and GPT-5
-
-
-## Quick Start
-
-### Prerequisites
-
-- [Node.js](https://nodejs.org/) v20 or higher
-- [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code) installed and configured, and/or
-- [Cursor CLI](https://docs.cursor.com/en/cli/overview) installed and configured
-
-### One-click Operation (Recommended)
-
-No installation required, direct operation:
+### 开发模式
 
 ```bash
-npx @siteboon/claude-code-ui
-```
+cd bun-server
+bun install
 
-Your default browser will automatically open the Claude Code UI interface.
-
-### Local Development Installation
-
-1. **Clone the repository:**
-```bash
-git clone https://github.com/siteboon/claudecodeui.git
-cd claudecodeui
-```
-
-2. **Install dependencies:**
-```bash
-npm install
-```
-
-3. **Configure environment:**
-```bash
+# 创建本地开发配置（首次运行）
 cp .env.example .env
-# Edit .env with your preferred settings
+
+# 启动开发服务器（自动加载 .env 文件）
+bun run dev
+
+# 或使用自定义配置文件
+bun run dev -- --env custom.env
+
+# 或直接指定端口
+bun run dev -- --port 8080
 ```
 
-4. **Start the application:**
+### 生产模式
+
 ```bash
-# Development mode (with hot reload)
-npm run dev
+# 自动加载 .env 文件
+bun run start
 
-```
-The application will start at the port you specified in your .env
-
-5. **Open your browser:**
-   - Development: `http://localhost:3001`
-
-## Security & Tools Configuration
-
-**🔒 Important Notice**: All Claude Code tools are **disabled by default**. This prevents potentially harmful operations from running automatically.
-
-### Enabling Tools
-
-To use Claude Code's full functionality, you'll need to manually enable tools:
-
-1. **Open Tools Settings** - Click the gear icon in the sidebar
-3. **Enable Selectively** - Turn on only the tools you need
-4. **Apply Settings** - Your preferences are saved locally
-
-<div align="center">
-
-![Tools Settings Modal](public/screenshots/tools-modal.png)
-*Tools Settings interface - enable only what you need*
-
-</div>
-
-**Recommended approach**: Start with basic tools enabled and add more as needed. You can always adjust these settings later.
-
-## TaskMaster AI Integration *(Optional)*
-
-Claude Code UI supports **[TaskMaster AI](https://github.com/eyaltoledano/claude-task-master)** (aka claude-task-master) integration for advanced project management and AI-powered task planning.
-
-It provides
-- AI-powered task generation from PRDs (Product Requirements Documents)
-- Smart task breakdown and dependency management  
-- Visual task boards and progress tracking
-
-**Setup & Documentation**: Visit the [TaskMaster AI GitHub repository](https://github.com/eyaltoledano/claude-task-master) for installation instructions, configuration guides, and usage examples.
-After installing it you should be able to enable it from the Settings
-
-
-## Usage Guide
-
-### Core Features
-
-#### Project Management
-The UI automatically discovers Claude Code projects from `~/.claude/projects/` and provides:
-- **Visual Project Browser** - All available projects with metadata and session counts
-- **Project Actions** - Rename, delete, and organize projects
-- **Smart Navigation** - Quick access to recent projects and sessions
-- **MCP support** - Add your own MCP servers through the UI 
-
-#### Chat Interface
-- **Use responsive chat or Claude Code/Cursor CLI** - You can either use the adapted chat interface or use the shell button to connect to your selected CLI. 
-- **Real-time Communication** - Stream responses from Claude with WebSocket connection
-- **Session Management** - Resume previous conversations or start fresh sessions
-- **Message History** - Complete conversation history with timestamps and metadata
-- **Multi-format Support** - Text, code blocks, and file references
-
-#### File Explorer & Editor
-- **Interactive File Tree** - Browse project structure with expand/collapse navigation
-- **Live File Editing** - Read, modify, and save files directly in the interface
-- **Syntax Highlighting** - Support for multiple programming languages
-- **File Operations** - Create, rename, delete files and directories
-
-#### Git Explorer
-
-
-#### TaskMaster AI Integration *(Optional)*
-- **Visual Task Board** - Kanban-style interface for managing development tasks
-- **PRD Parser** - Create Product Requirements Documents and parse them into structured tasks
-- **Progress Tracking** - Real-time status updates and completion tracking
-
-#### Session Management
-- **Session Persistence** - All conversations automatically saved
-- **Session Organization** - Group sessions by project and timestamp
-- **Session Actions** - Rename, delete, and export conversation history
-- **Cross-device Sync** - Access sessions from any device
-
-### Mobile App
-- **Responsive Design** - Optimized for all screen sizes
-- **Touch-friendly Interface** - Swipe gestures and touch navigation
-- **Mobile Navigation** - Bottom tab bar for easy thumb navigation
-- **Adaptive Layout** - Collapsible sidebar and smart content prioritization
-- **Add shortcut to Home Screen** - Add a shortcut to your home screen and the app will behave like a PWA
-
-## Architecture
-
-### System Overview
-
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Frontend      │    │   Backend       │    │  Claude CLI     │
-│   (React/Vite)  │◄──►│ (Express/WS)    │◄──►│  Integration    │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
+# 或使用自定义配置
+bun run start -- --env production.env
 ```
 
-### Backend (Node.js + Express)
-- **Express Server** - RESTful API with static file serving
-- **WebSocket Server** - Communication for chats and project refresh
-- **CLI Integration (Claude Code / Cursor)** - Process spawning and management
-- **Session Management** - JSONL parsing and conversation persistence
-- **File System API** - Exposing file browser for projects
+## 二进制打包和部署
 
-### Frontend (React + Vite)
-- **React 18** - Modern component architecture with hooks
-- **CodeMirror** - Advanced code editor with syntax highlighting
+### 打包命令
 
+#### 本地平台打包
 
+```bash
+cd bun-server
+bun run build
+```
 
+生成文件位置：`build/claudecodeui` (macOS/Linux) 或 `build/claudecodeui.exe` (Windows)
+同时会复制 `.env.example` 到 `build/` 目录
 
+#### 跨平台打包
 
-### Contributing
+```bash
+# Linux x64
+bun run build:linux
 
-We welcome contributions! Please follow these guidelines:
+# macOS Intel
+bun run build:macos
 
-#### Getting Started
-1. **Fork** the repository
-2. **Clone** your fork: `git clone <your-fork-url>`
-3. **Install** dependencies: `npm install`
-4. **Create** a feature branch: `git checkout -b feature/amazing-feature`
+# macOS Apple Silicon (M1/M2/M3)
+bun run build:macos-arm
 
-#### Development Process
-1. **Make your changes** following the existing code style
-2. **Test thoroughly** - ensure all features work correctly
-3. **Run quality checks**: `npm run lint && npm run format`
-4. **Commit** with descriptive messages following [Conventional Commits](https://conventionalcommits.org/)
-5. **Push** to your branch: `git push origin feature/amazing-feature`
-6. **Submit** a Pull Request with:
-   - Clear description of changes
-   - Screenshots for UI changes
-   - Test results if applicable
+# Windows x64
+bun run build:windows
 
-#### What to Contribute
-- **Bug fixes** - Help us improve stability
-- **New features** - Enhance functionality (discuss in issues first)
-- **Documentation** - Improve guides and API docs
-- **UI/UX improvements** - Better user experience
-- **Performance optimizations** - Make it faster
+# 一次性打包所有平台
+bun run build:all
+```
 
-## Troubleshooting
+### 运行方式
 
-### Common Issues & Solutions
+#### 方式 1: 使用 .env 文件（推荐）
 
-#### "No Claude projects found"
-**Problem**: The UI shows no projects or empty project list
-**Solutions**:
-- Ensure [Claude CLI](https://docs.anthropic.com/en/docs/claude-code) is properly installed
-- Run `claude` command in at least one project directory to initialize
-- Verify `~/.claude/projects/` directory exists and has proper permissions
-d
+```bash
+# 创建配置文件
+cp .env.example production.env
 
-#### File Explorer Issues
-**Problem**: Files not loading, permission errors, empty directories
-**Solutions**:
-- Check project directory permissions (`ls -la` in terminal)
-- Verify the project path exists and is accessible
-- Review server console logs for detailed error messages
-- Ensure you're not trying to access system directories outside project scope
+# 编辑配置
+vim production.env
 
+# 运行（会自动读取 .env 文件）
+./claudecodeui
+```
 
-## License
+#### 方式 2: 使用自定义 .env 文件
 
-GNU General Public License v3.0 - see [LICENSE](LICENSE) file for details.
+```bash
+# 使用 --env 参数指定配置文件
+./claudecodeui --env my-config.env
 
-This project is open source and free to use, modify, and distribute under the GPL v3 license.
+# 或使用简写
+./claudecodeui -e my-config.env
+```
 
-## Acknowledgments
+#### 方式 3: 使用 JSON 配置文件
 
-### Built With
-- **[Claude Code](https://docs.anthropic.com/en/docs/claude-code)** - Anthropic's official CLI
-- **[React](https://react.dev/)** - User interface library
-- **[Vite](https://vitejs.dev/)** - Fast build tool and dev server
-- **[Tailwind CSS](https://tailwindcss.com/)** - Utility-first CSS framework
-- **[CodeMirror](https://codemirror.net/)** - Advanced code editor
-- **[TaskMaster AI](https://github.com/eyaltoledano/claude-task-master)** *(Optional)* - AI-powered project management and task planning
+```bash
+# 创建 JSON 配置（参考 .env.example 格式）
+cat > production.config.json << 'EOF'
+{
+  "PORT": 3000,
+  "NODE_ENV": "production",
+  "ANTHROPIC_API_KEY": "sk-ant-xxxxx"
+}
+EOF
 
-## Support & Community
+# 运行
+./claudecodeui --env production.config.json
+```
 
-### Stay Updated
-- **Star** this repository to show support
-- **Watch** for updates and new releases
-- **Follow** the project for announcements
+#### 方式 4: 指定端口
 
-### Sponsors
-- [Siteboon - AI powered website builder](https://siteboon.ai)
----
+```bash
+# 覆盖配置文件中的端口
+./claudecodeui --env my-config.env --port 8080
 
-<div align="center">
-  <strong>Made with care for the Claude Code community.</strong>
-</div>
+# 或使用简写
+./claudecodeui -e my-config.env -p 8080
+```
+
+#### 方式 5: 组合使用
+
+```bash
+# 不使用配置文件，直接指定端口
+./claudecodeui --port 3000
+
+# 使用环境变量 + 配置文件
+ANTHROPIC_API_KEY=sk-ant-xxx ./claudecodeui --env production.env
+```
+
+## 配置文件格式
+
+### .env 格式（推荐）
+
+```env
+PORT=3000
+NODE_ENV=production
+ANTHROPIC_API_KEY=sk-ant-xxxxx
+CLAUDE_APPEND_SYSTEM_PROMPT=每次执行都需要先规划再去执行
+```
+
+### JSON 格式
+
+```json
+{
+  "PORT": 3000,
+  "NODE_ENV": "production",
+  "ANTHROPIC_API_KEY": "sk-ant-xxxxx",
+  "CLAUDE_APPEND_SYSTEM_PROMPT": "每次执行都需要先规划再去执行"
+}
+```
+
+### JavaScript/TypeScript 格式
+
+```js
+// config.js
+module.exports = {
+  PORT: 3000,
+  NODE_ENV: "production",
+  ANTHROPIC_API_KEY: "sk-ant-xxxxx",
+  CLAUDE_APPEND_SYSTEM_PROMPT: "每次执行都需要先规划再去执行"
+};
+```
+
+使用: `./claudecodeui --env config.js`
+
+## 部署示例
+
+### Linux 服务器部署
+
+```bash
+# 1. 上传二进制文件和配置
+scp claudecodeui-linux user@server:/opt/claudecodeui/
+scp production.env user@server:/opt/claudecodeui/
+
+# 2. SSH 到服务器
+ssh user@server
+
+# 3. 添加执行权限
+chmod +x /opt/claudecodeui/claudecodeui-linux
+
+# 4. 运行
+cd /opt/claudecodeui
+./claudecodeui-linux --env production.env
+```
+
+### 使用 systemd 服务
+
+创建 `/etc/systemd/system/claudecodeui.service`:
+
+```ini
+[Unit]
+Description=Claude Code UI Server
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/opt/claudecodeui
+ExecStart=/opt/claudecodeui/claudecodeui-linux --env production.env
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+```
+
+启动服务:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable claudecodeui
+sudo systemctl start claudecodeui
+sudo systemctl status claudecodeui
+```
+
+### Docker 部署
+
+```dockerfile
+FROM debian:bookworm-slim
+
+WORKDIR /app
+
+# 复制二进制文件和配置
+COPY claudecodeui-linux /app/claudecodeui
+COPY production.env /app/production.env
+COPY client /app/client
+
+# 添加执行权限
+RUN chmod +x /app/claudecodeui
+
+# 暴露端口
+EXPOSE 3000
+
+# 启动
+CMD ["/app/claudecodeui", "--env", "production.env"]
+```
+
+构建和运行:
+
+```bash
+docker build -t claudecodeui .
+docker run -p 3000:3000 -v $(pwd)/data:/app/data claudecodeui
+```
+
+## 环境变量加载机制
+
+服务器启动时会按以下优先级加载配置（后加载的会覆盖先加载的）：
+
+1. **默认 .env 文件** - 如果存在 `.env` 文件，自动加载
+2. **自定义配置文件** - 如果指定了 `--env` 参数，覆盖默认配置
+3. **命令行参数** - `--port` 参数拥有最高优先级
+
+### 使用示例
+
+```bash
+# 1. 只使用 .env 文件
+bun run dev
+
+# 2. 使用自定义配置文件（会覆盖 .env）
+bun run dev -- --env production.env
+
+# 3. 使用 .env + 端口覆盖
+bun run dev -- --port 8080
+
+# 4. 自定义配置 + 端口覆盖
+bun run dev -- --env custom.env --port 8080
+```
+
+## 注意事项
+
+### 1. 静态资源
+
+二进制打包**不包含** `client` 目录，需要手动复制：
+
+```bash
+# 确保 client 目录在二进制文件同级目录
+./claudecodeui
+├── client/
+│   ├── index.html
+│   ├── app.js
+│   └── style.css
+└── production.env
+```
+
+### 2. 数据库路径
+
+配置文件中的相对路径是相对于**运行目录**：
+
+```env
+# 推荐使用绝对路径
+DB_PATH=/opt/claudecodeui/data/auth.db
+
+# 或相对路径（相对于运行目录）
+DB_PATH=./data/auth.db
+```
+
+### 3. 文件权限
+
+Linux/macOS 需要添加执行权限：
+
+```bash
+chmod +x claudecodeui
+```
+
+### 4. 跨平台兼容性
+
+- Linux 二进制在 macOS 上无法运行，反之亦然
+- Windows 二进制需要 `.exe` 扩展名
+- 建议在目标平台上打包，或使用交叉编译
+
+## 故障排查
+
+### 问题 1: 找不到配置文件
+
+```
+❌ Failed to load config file: Config file not found: /path/to/config.env
+```
+
+**解决**: 使用绝对路径或确保配置文件在正确位置
+
+```bash
+./claudecodeui --env /absolute/path/to/config.env
+```
+
+### 问题 2: 端口被占用
+
+```
+Error: listen EADDRINUSE: address already in use :::3000
+```
+
+**解决**: 更换端口
+
+```bash
+./claudecodeui --env config.env --port 3001
+```
+
+### 问题 3: 找不到 client 目录
+
+```
+404 Not Found
+```
+
+**解决**: 确保 `client` 目录存在
+
+```bash
+cp -r client ./
+./claudecodeui --env config.env
+```
+
+### 问题 4: 权限问题 (Linux/macOS)
+
+```
+bash: ./claudecodeui: Permission denied
+```
+
+**解决**: 添加执行权限
+
+```bash
+chmod +x claudecodeui
+```
+
+## 测试
+
+```bash
+# 测试打包
+cd bun-server
+bun run build
+
+# 创建测试配置
+cat > test.env << EOF
+PORT=3000
+NODE_ENV=development
+EOF
+
+# 测试运行
+./claudecodeui --env test.env
+
+# 访问测试
+curl http://localhost:3000
+```
