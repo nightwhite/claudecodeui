@@ -37,7 +37,7 @@ jobs:
       - name: Build binary
         run: |
           mkdir -p build
-          bun build ./src/index.ts --compile --outfile build/${{ matrix.artifact }}
+          bun build ./src/index.ts --compile --target bun --outfile build/${{ matrix.artifact }}
           cp .env.example build/
 
       - name: Upload artifact
