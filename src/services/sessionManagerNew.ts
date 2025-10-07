@@ -110,7 +110,7 @@ export async function getClaudeSessions(projectName: string, limit = 5, offset =
     const jsonlFiles = files.filter(f => f.endsWith('.jsonl'));
     
     if (jsonlFiles.length === 0) {
-      return { sessions: [], total: 0, hasMore: false };
+      return { sessions: [], total: 0, hasMore: false, offset, limit };
     }
     
     // For performance, get file stats to sort by modification time
