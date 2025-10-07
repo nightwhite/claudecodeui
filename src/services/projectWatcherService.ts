@@ -138,12 +138,12 @@ export async function setupProjectsWatcher(): Promise<void> {
 
     // Set up event listeners
     projectsWatcher
-      .on('add', (filePath) => debouncedUpdate('add', filePath))
-      .on('change', (filePath) => debouncedUpdate('change', filePath))
-      .on('unlink', (filePath) => debouncedUpdate('unlink', filePath))
-      .on('addDir', (dirPath) => debouncedUpdate('addDir', dirPath))
-      .on('unlinkDir', (dirPath) => debouncedUpdate('unlinkDir', dirPath))
-      .on('error', (error) => {
+      .on('add', (filePath: string) => debouncedUpdate('add', filePath))
+      .on('change', (filePath: string) => debouncedUpdate('change', filePath))
+      .on('unlink', (filePath: string) => debouncedUpdate('unlink', filePath))
+      .on('addDir', (dirPath: string) => debouncedUpdate('addDir', dirPath))
+      .on('unlinkDir', (dirPath: string) => debouncedUpdate('unlinkDir', dirPath))
+      .on('error', (error: Error) => {
         console.error('❌ Projects watcher error:', error);
       })
       .on('ready', () => {

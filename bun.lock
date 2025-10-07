@@ -18,6 +18,7 @@
       },
       "devDependencies": {
         "@types/bun": "^1.2.13",
+        "@types/chokidar": "^2.1.7",
         "typescript": "^5.8.3",
       },
     },
@@ -44,6 +45,8 @@
     "@tokenizer/token": ["@tokenizer/token@0.3.0", "https://registry.npmmirror.com/@tokenizer/token/-/token-0.3.0.tgz", {}, "sha512-OvjF+z51L3ov0OyAU0duzsYuvO01PH7x4t6DJx+guahgTnBHkhJdG7soQeTSFLWN3efnHyibZ4Z8l2EuWwJN3A=="],
 
     "@types/bun": ["@types/bun@1.2.21", "https://registry.npmmirror.com/@types/bun/-/bun-1.2.21.tgz", { "dependencies": { "bun-types": "1.2.21" } }, "sha512-NiDnvEqmbfQ6dmZ3EeUO577s4P5bf4HCTXtI6trMc6f6RzirY5IrF3aIookuSpyslFzrnvv2lmEWv5HyC1X79A=="],
+
+    "@types/chokidar": ["@types/chokidar@2.1.7", "https://registry.npmmirror.com/@types/chokidar/-/chokidar-2.1.7.tgz", { "dependencies": { "chokidar": "*" } }, "sha512-A7/MFHf6KF7peCzjEC1BBTF8jpmZTokb3vr/A0NxRGfwRLK3Ws+Hq6ugVn6cJIMfM6wkCak/aplWrxbTcu8oig=="],
 
     "@types/mime-types": ["@types/mime-types@3.0.1", "https://registry.npmmirror.com/@types/mime-types/-/mime-types-3.0.1.tgz", {}, "sha512-xRMsfuQbnRq1Ef+C+RKaENOxXX87Ygl38W1vDfPHRku02TgQr+Qd8iivLtAMcR0KF5/29xlnFihkTlbqFrGOVQ=="],
 
