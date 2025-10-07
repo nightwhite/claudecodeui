@@ -6,7 +6,7 @@
  * Notifies connected WebSocket clients about project changes
  */
 
-import chokidar from 'chokidar';
+import chokidar, { type FSWatcher } from 'chokidar';
 import path from 'path';
 import os from 'os';
 import { discoverProjects } from './projectDiscovery.ts';
@@ -21,7 +21,7 @@ interface WebSocketClient {
 const connectedClients = new Set<WebSocketClient>();
 
 // File system watcher instance
-let projectsWatcher: chokidar.FSWatcher | null = null;
+let projectsWatcher: FSWatcher | null = null;
 
 /**
  * Add a WebSocket client to receive project updates
@@ -143,7 +143,7 @@ export async function setupProjectsWatcher(): Promise<void> {
       .on('unlink', (filePath: string) => debouncedUpdate('unlink', filePath))
       .on('addDir', (dirPath: string) => debouncedUpdate('addDir', dirPath))
       .on('unlinkDir', (dirPath: string) => debouncedUpdate('unlinkDir', dirPath))
-      .on('error', (error: Error) => {
+      .on('error', (error: unknown) => {
         console.error('❌ Projects watcher error:', error);
       })
       .on('ready', () => {
