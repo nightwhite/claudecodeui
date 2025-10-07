@@ -11,19 +11,8 @@ permissions:
 
 jobs:
   build:
-    name: Build for ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        include:
-          - os: ubuntu-latest
-            artifact: xcoding-cli-linux
-          - os: macos-13
-            artifact: xcoding-cli-macos-x64
-          - os: macos-latest
-            artifact: xcoding-cli-macos-arm64
-          - os: windows-latest
-            artifact: xcoding-cli.exe
+    name: Build All Platforms
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
@@ -37,19 +26,25 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      - name: Build binary
-        run: |
-          mkdir -p build
-          bun build ./src/index.ts --compile --target bun --outfile build/${{ matrix.artifact }}
-          cp .env.example build/
+      - name: Build for Linux x64
+        run: bun run build:linux
 
-      - name: Upload artifact
+      - name: Build for macOS x64
+        run: bun run build:macos
+
+      - name: Build for macOS ARM64
+        run: bun run build:macos-arm
+
+      - name: Build for Windows x64
+        run: bun run build:windows
+
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.artifact }}
+          name: xcoding-cli-all-platforms
           path: |
-            build/${{ matrix.artifact }}
-            build/.env.example
+            build/*
+            !build/*.DS_Store
 
   release:
     name: Create Release
@@ -58,17 +53,16 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
 
     steps:
-      - name: Download all artifacts
+      - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
+          name: xcoding-cli-all-platforms
           path: artifacts
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: |
-            artifacts/*/xcoding-cli*
-            artifacts/*/.env.example
+          files: artifacts/*
           draft: false
           prerelease: false
           generate_release_notes: true
