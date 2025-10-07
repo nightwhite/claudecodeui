@@ -1,4 +1,4 @@
-# Claude Code UI - Bun Server
+# XCoding CLI
 
 基于 Bun + Elysia 的高性能 Claude Code CLI Web 服务器。
 
@@ -15,7 +15,6 @@
 ### 开发模式
 
 ```bash
-cd bun-server
 bun install
 
 # 创建本地开发配置（首次运行）
@@ -48,11 +47,10 @@ bun run start -- --env production.env
 #### 本地平台打包
 
 ```bash
-cd bun-server
 bun run build
 ```
 
-生成文件位置：`build/claudecodeui` (macOS/Linux) 或 `build/claudecodeui.exe` (Windows)
+生成文件位置：`build/xcoding-cli` (macOS/Linux) 或 `build/xcoding-cli.exe` (Windows)
 同时会复制 `.env.example` 到 `build/` 目录
 
 #### 跨平台打包
@@ -86,17 +84,17 @@ cp .env.example production.env
 vim production.env
 
 # 运行（会自动读取 .env 文件）
-./claudecodeui
+./xcoding-cli
 ```
 
 #### 方式 2: 使用自定义 .env 文件
 
 ```bash
 # 使用 --env 参数指定配置文件
-./claudecodeui --env my-config.env
+./xcoding-cli --env my-config.env
 
 # 或使用简写
-./claudecodeui -e my-config.env
+./xcoding-cli -e my-config.env
 ```
 
 #### 方式 3: 使用 JSON 配置文件
@@ -112,27 +110,27 @@ cat > production.config.json << 'EOF'
 EOF
 
 # 运行
-./claudecodeui --env production.config.json
+./xcoding-cli --env production.config.json
 ```
 
 #### 方式 4: 指定端口
 
 ```bash
 # 覆盖配置文件中的端口
-./claudecodeui --env my-config.env --port 8080
+./xcoding-cli --env my-config.env --port 8080
 
 # 或使用简写
-./claudecodeui -e my-config.env -p 8080
+./xcoding-cli -e my-config.env -p 8080
 ```
 
 #### 方式 5: 组合使用
 
 ```bash
 # 不使用配置文件，直接指定端口
-./claudecodeui --port 3000
+./xcoding-cli --port 3000
 
 # 使用环境变量 + 配置文件
-ANTHROPIC_API_KEY=sk-ant-xxx ./claudecodeui --env production.env
+ANTHROPIC_API_KEY=sk-ant-xxx ./xcoding-cli --env production.env
 ```
 
 ## 配置文件格式
@@ -169,7 +167,7 @@ module.exports = {
 };
 ```
 
-使用: `./claudecodeui --env config.js`
+使用: `./xcoding-cli --env config.js`
 
 ## 部署示例
 
@@ -177,34 +175,34 @@ module.exports = {
 
 ```bash
 # 1. 上传二进制文件和配置
-scp claudecodeui-linux user@server:/opt/claudecodeui/
-scp production.env user@server:/opt/claudecodeui/
+scp xcoding-cli-linux user@server:/opt/xcoding-cli/
+scp production.env user@server:/opt/xcoding-cli/
 
 # 2. SSH 到服务器
 ssh user@server
 
 # 3. 添加执行权限
-chmod +x /opt/claudecodeui/claudecodeui-linux
+chmod +x /opt/xcoding-cli/xcoding-cli-linux
 
 # 4. 运行
-cd /opt/claudecodeui
-./claudecodeui-linux --env production.env
+cd /opt/xcoding-cli
+./xcoding-cli-linux --env production.env
 ```
 
 ### 使用 systemd 服务
 
-创建 `/etc/systemd/system/claudecodeui.service`:
+创建 `/etc/systemd/system/xcoding-cli.service`:
 
 ```ini
 [Unit]
-Description=Claude Code UI Server
+Description=XCoding CLI Server
 After=network.target
 
 [Service]
 Type=simple
 User=www-data
-WorkingDirectory=/opt/claudecodeui
-ExecStart=/opt/claudecodeui/claudecodeui-linux --env production.env
+WorkingDirectory=/opt/xcoding-cli
+ExecStart=/opt/xcoding-cli/xcoding-cli-linux --env production.env
 Restart=on-failure
 RestartSec=10
 
@@ -229,25 +227,25 @@ FROM debian:bookworm-slim
 WORKDIR /app
 
 # 复制二进制文件和配置
-COPY claudecodeui-linux /app/claudecodeui
+COPY xcoding-cli-linux /app/xcoding-cli
 COPY production.env /app/production.env
 COPY client /app/client
 
 # 添加执行权限
-RUN chmod +x /app/claudecodeui
+RUN chmod +x /app/xcoding-cli
 
 # 暴露端口
 EXPOSE 3000
 
 # 启动
-CMD ["/app/claudecodeui", "--env", "production.env"]
+CMD ["/app/xcoding-cli", "--env", "production.env"]
 ```
 
 构建和运行:
 
 ```bash
-docker build -t claudecodeui .
-docker run -p 3000:3000 -v $(pwd)/data:/app/data claudecodeui
+docker build -t xcoding-cli .
+docker run -p 3000:3000 -v $(pwd)/data:/app/data xcoding-cli
 ```
 
 ## 环境变量加载机制
@@ -282,7 +280,7 @@ bun run dev -- --env custom.env --port 8080
 
 ```bash
 # 确保 client 目录在二进制文件同级目录
-./claudecodeui
+./xcoding-cli
 ├── client/
 │   ├── index.html
 │   ├── app.js
@@ -296,7 +294,7 @@ bun run dev -- --env custom.env --port 8080
 
 ```env
 # 推荐使用绝对路径
-DB_PATH=/opt/claudecodeui/data/auth.db
+DB_PATH=/opt/xcoding-cli/data/auth.db
 
 # 或相对路径（相对于运行目录）
 DB_PATH=./data/auth.db
@@ -307,7 +305,7 @@ DB_PATH=./data/auth.db
 Linux/macOS 需要添加执行权限：
 
 ```bash
-chmod +x claudecodeui
+chmod +x xcoding-cli
 ```
 
 ### 4. 跨平台兼容性
@@ -327,7 +325,7 @@ chmod +x claudecodeui
 **解决**: 使用绝对路径或确保配置文件在正确位置
 
 ```bash
-./claudecodeui --env /absolute/path/to/config.env
+./xcoding-cli --env /absolute/path/to/config.env
 ```
 
 ### 问题 2: 端口被占用
@@ -339,7 +337,7 @@ Error: listen EADDRINUSE: address already in use :::3000
 **解决**: 更换端口
 
 ```bash
-./claudecodeui --env config.env --port 3001
+./xcoding-cli --env config.env --port 3001
 ```
 
 ### 问题 3: 找不到 client 目录
@@ -352,26 +350,25 @@ Error: listen EADDRINUSE: address already in use :::3000
 
 ```bash
 cp -r client ./
-./claudecodeui --env config.env
+./xcoding-cli --env config.env
 ```
 
 ### 问题 4: 权限问题 (Linux/macOS)
 
 ```
-bash: ./claudecodeui: Permission denied
+bash: ./xcoding-cli: Permission denied
 ```
 
 **解决**: 添加执行权限
 
 ```bash
-chmod +x claudecodeui
+chmod +x xcoding-cli
 ```
 
 ## 测试
 
 ```bash
 # 测试打包
-cd bun-server
 bun run build
 
 # 创建测试配置
@@ -381,7 +378,7 @@ NODE_ENV=development
 EOF
 
 # 测试运行
-./claudecodeui --env test.env
+./xcoding-cli --env test.env
 
 # 访问测试
 curl http://localhost:3000

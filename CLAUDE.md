@@ -4,51 +4,47 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 项目概述
 
-Claude Code UI 是一个用于 Claude Code CLI 和 Cursor CLI 的 Web 界面，提供桌面端和移动端的响应式体验。项目使用 React + Node.js 架构，通过 WebSocket 进行实时通信。
+XCoding CLI 是一个用于 Claude Code CLI 的 Web 服务器，基于 Bun + Elysia 架构，通过 WebSocket 进行实时通信。
 
 ## 常用命令
 
 ### 开发环境
 ```bash
-# 启动开发服务器（并发运行前后端）
-npm run dev
+# 启动开发服务器
+bun run dev
 
-# 单独启动后端服务器
-npm run server
-
-# 单独启动前端开发服务器
-npm run client
+# 启动生产服务器
+bun run start
 ```
 
 ### 构建和部署
 ```bash
-# 构建生产版本
-npm run build
+# 构建当前平台二进制
+bun run build
 
-# 预览生产构建
-npm run preview
+# 构建所有平台
+bun run build:all
 
-# 构建并启动生产服务器
-npm run start
+# 单独构建特定平台
+bun run build:linux
+bun run build:macos
+bun run build:macos-arm
+bun run build:windows
 ```
 
 ### 依赖管理
 ```bash
 # 安装依赖
-npm install
-
-# 检查过时的包
-npm outdated
+bun install
 ```
 
 ## 核心架构
 
 ### 技术栈
-- **前端**: React 18 + Vite + Tailwind CSS
-- **后端**: Node.js + Express + WebSocket
-- **数据库**: SQLite3 (用户认证和会话管理)
-- **终端**: xterm.js + node-pty (内置终端功能)
-- **代码编辑器**: CodeMirror (文件编辑和语法高亮)
+- **Runtime**: Bun - 高性能 JavaScript 运行时
+- **Web Framework**: ElysiaJS - 超快速的 TypeScript Web 框架
+- **WebSocket**: 原生 Bun WebSocket - 实时通信
+- **文件监听**: chokidar - 项目文件变更监听
 
 ### 目录结构
 ```

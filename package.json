@@ -1,14 +1,14 @@
 {
-  "name": "claudecodeui",
+  "name": "xcoding-cli",
   "type": "module",
   "scripts": {
     "dev": "bun --watch src/index.ts",
     "start": "bun run ./src/index.ts",
-    "build": "mkdir -p build && bun build ./src/index.ts --compile --outfile build/claudecodeui && cp .env.example build/",
-    "build:linux": "mkdir -p build && bun build ./src/index.ts --compile --target=bun-linux-x64 --outfile build/claudecodeui-linux && cp .env.example build/",
-    "build:macos": "mkdir -p build && bun build ./src/index.ts --compile --target=bun-darwin-x64 --outfile build/claudecodeui-macos && cp .env.example build/",
-    "build:macos-arm": "mkdir -p build && bun build ./src/index.ts --compile --target=bun-darwin-arm64 --outfile build/claudecodeui-macos-arm64 && cp .env.example build/",
-    "build:windows": "mkdir -p build && bun build ./src/index.ts --compile --target=bun-windows-x64 --outfile build/claudecodeui.exe && cp .env.example build/",
+    "build": "mkdir -p build && bun build ./src/index.ts --compile --outfile build/xcoding-cli && cp .env.example build/",
+    "build:linux": "mkdir -p build && bun build ./src/index.ts --compile --target=bun-linux-x64 --outfile build/xcoding-cli-linux && cp .env.example build/",
+    "build:macos": "mkdir -p build && bun build ./src/index.ts --compile --target=bun-darwin-x64 --outfile build/xcoding-cli-macos && cp .env.example build/",
+    "build:macos-arm": "mkdir -p build && bun build ./src/index.ts --compile --target=bun-darwin-arm64 --outfile build/xcoding-cli-macos-arm64 && cp .env.example build/",
+    "build:windows": "mkdir -p build && bun build ./src/index.ts --compile --target=bun-windows-x64 --outfile build/xcoding-cli.exe && cp .env.example build/",
     "build:all": "bun run build:linux && bun run build:macos && bun run build:macos-arm && bun run build:windows",
     "clean": "rm -rf build"
   },
