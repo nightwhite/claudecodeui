@@ -11,6 +11,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import { getClaudeEnvAsRecord } from './claudeEnvMemory.ts';
+import { getMCPConfigJSON, hasMCPServers } from './mcpConfigService.ts'; 
 
 export interface ClaudeSpawnOptions {
   sessionId?: string;
@@ -22,7 +23,7 @@ export interface ClaudeSpawnOptions {
     disallowedTools?: string[];
     skipPermissions?: boolean;
   };
-  permissionMode?: 'default' | 'plan';
+  permissionMode?: 'default' | 'acceptEdits' | 'bypassPermissions' | 'plan';
   images?: Array<{
     name: string;
     data: string;
@@ -108,65 +109,67 @@ async function processImages(images: ClaudeSpawnOptions['images'], workingDir: s
 /**
  * Check for MCP configuration and return config path if available
  */
-async function checkMcpConfig(): Promise<string | null> {
+async function checkMcpConfig(projectPath?: string): Promise<string | null> {
   try {
     console.log('🔍 Starting MCP config check...');
+
+    // Priority 1: Check memory-based MCP configuration
+    if (hasMCPServers()) {
+      const mcpConfig = getMCPConfigJSON(projectPath);
+      if (mcpConfig) {
+        // Write config to temporary file
+        const tempDir = path.join(os.tmpdir(), 'claudecodeui');
+        await fs.mkdir(tempDir, { recursive: true });
+
+        const tempConfigPath = path.join(tempDir, `mcp-config-${Date.now()}.json`);
+        await fs.writeFile(tempConfigPath, JSON.stringify(mcpConfig, null, 2), 'utf8');
+
+        console.log(`✅ Created MCP config file from memory: ${tempConfigPath}`);
+        console.log(`📊 MCP servers configured: ${Object.keys(mcpConfig.mcpServers || {}).length}`);
+        return tempConfigPath;
+      }
+    }
+
+    // Priority 2: Fall back to ~/.claude.json if exists
     const { existsSync, readFileSync } = await import('fs');
-    
-    // Check for MCP config in ~/.claude.json
     const claudeConfigPath = path.join(os.homedir(), '.claude.json');
-    
+
     console.log(`🔍 Checking for MCP configs in: ${claudeConfigPath}`);
     console.log(`  Claude config exists: ${existsSync(claudeConfigPath)}`);
-    
-    let hasMcpServers = false;
-    
+
+    let hasFileBasedServers = false;
+
     // Check Claude config for MCP servers
     if (existsSync(claudeConfigPath)) {
       try {
         const claudeConfig = JSON.parse(readFileSync(claudeConfigPath, 'utf8'));
-        
+
         // Check global MCP servers
         if (claudeConfig.mcpServers && Object.keys(claudeConfig.mcpServers).length > 0) {
-          console.log(`✅ Found ${Object.keys(claudeConfig.mcpServers).length} global MCP servers`);
-          hasMcpServers = true;
+          console.log(`✅ Found ${Object.keys(claudeConfig.mcpServers).length} global MCP servers in ~/.claude.json`);
+          hasFileBasedServers = true;
         }
-        
+
         // Check project-specific MCP servers
-        if (!hasMcpServers && claudeConfig.claudeProjects) {
-          const currentProjectPath = process.cwd();
+        if (!hasFileBasedServers && claudeConfig.claudeProjects) {
+          const currentProjectPath = projectPath || process.cwd();
           const projectConfig = claudeConfig.claudeProjects[currentProjectPath];
           if (projectConfig && projectConfig.mcpServers && Object.keys(projectConfig.mcpServers).length > 0) {
-            console.log(`✅ Found ${Object.keys(projectConfig.mcpServers).length} project MCP servers`);
-            hasMcpServers = true;
+            console.log(`✅ Found ${Object.keys(projectConfig.mcpServers).length} project MCP servers in ~/.claude.json`);
+            hasFileBasedServers = true;
           }
         }
       } catch (e: any) {
         console.log(`❌ Failed to parse Claude config:`, e.message);
       }
     }
-    
-    console.log(`🔍 hasMcpServers result: ${hasMcpServers}`);
-    
-    if (hasMcpServers && existsSync(claudeConfigPath)) {
-      try {
-        const claudeConfig = JSON.parse(readFileSync(claudeConfigPath, 'utf8'));
-        
-        // Check if we have any MCP servers (global or project-specific)
-        const hasGlobalServers = claudeConfig.mcpServers && Object.keys(claudeConfig.mcpServers).length > 0;
-        const currentProjectPath = process.cwd();
-        const projectConfig = claudeConfig.claudeProjects && claudeConfig.claudeProjects[currentProjectPath];
-        const hasProjectServers = projectConfig && projectConfig.mcpServers && Object.keys(projectConfig.mcpServers).length > 0;
-        
-        if (hasGlobalServers || hasProjectServers) {
-          console.log(`📡 MCP config found: ${claudeConfigPath}`);
-          return claudeConfigPath;
-        }
-      } catch (e) {
-        console.log('⚠️ MCP servers detected but config file is invalid');
-      }
+
+    if (hasFileBasedServers) {
+      console.log(`📡 Using MCP config from ~/.claude.json: ${claudeConfigPath}`);
+      return claudeConfigPath;
     }
-    
+
+    console.log('ℹ️ No MCP configuration found (neither in memory nor ~/.claude.json)');
     return null;
   } catch (error: any) {
     // If there's any error checking for MCP configs, don't add the flag
@@ -180,43 +183,43 @@ async function checkMcpConfig(): Promise<string | null> {
  * Build Claude CLI arguments array
  */
 async function buildClaudeArgs(
-  command: string | undefined, 
+  command: string | undefined,
   options: ClaudeSpawnOptions,
   tempImagePaths: string[]
 ): Promise<string[]> {
-  const { sessionId, resume, toolsSettings, permissionMode } = options;
+  const { sessionId, resume, toolsSettings, permissionMode, cwd, projectPath } = options;
   const args: string[] = [];
-  
+
   // Use tools settings passed from frontend, or defaults
   const settings = toolsSettings || {
     allowedTools: [],
     disallowedTools: [],
     skipPermissions: false
   };
-  
+
   // Add print flag with command if we have a command
   if (command && command.trim()) {
     let finalCommand = command;
-    
+
     // Include the full image paths in the prompt for Claude to reference
     if (tempImagePaths.length > 0) {
       const imageNote = `\n\n[Images provided at the following paths:]\n${tempImagePaths.map((p, i) => `${i + 1}. ${p}`).join('\n')}`;
       finalCommand = command + imageNote;
     }
-    
+
     args.push('--print', finalCommand);
   }
-  
+
   // Add resume flag if resuming
   if (resume && sessionId) {
     args.push('--resume', sessionId);
   }
-  
+
   // Add basic flags
   args.push('--output-format', 'stream-json', '--verbose');
-  
+
   // Add MCP config flag if available
-  const mcpConfigPath = await checkMcpConfig();
+  const mcpConfigPath = await checkMcpConfig(projectPath || cwd);
   if (mcpConfigPath) {
     console.log(`📡 Adding MCP config: ${mcpConfigPath}`);
     args.push('--mcp-config', mcpConfigPath);
@@ -231,6 +234,14 @@ async function buildClaudeArgs(
   if (permissionMode && permissionMode !== 'default') {
     args.push('--permission-mode', permissionMode);
     console.log('🔒 Using permission mode:', permissionMode);
+  }
+
+  // Add append-system-prompt if environment variable is set
+  const claudeEnv = getClaudeEnvAsRecord();
+  const appendSystemPrompt = claudeEnv.CLAUDE_APPEND_SYSTEM_PROMPT;
+  if (appendSystemPrompt && appendSystemPrompt.trim()) {
+    args.push('--append-system-prompt', appendSystemPrompt.trim());
+    console.log('📝 Using append-system-prompt:', appendSystemPrompt.substring(0, 50) + '...');
   }
   
   // Add tools settings flags
@@ -327,9 +338,25 @@ export async function spawnClaude(
     // Get Claude environment variables from memory (NOT from system env)
     const claudeMemoryEnvVars = getClaudeEnvAsRecord();
     console.log('🔒 Using isolated Claude environment variables:', Object.keys(claudeMemoryEnvVars));
-    
+
+    // Print actual values for debugging (mask sensitive parts)
+    for (const [key, value] of Object.entries(claudeMemoryEnvVars)) {
+      const maskedValue = value.length > 20
+        ? value.substring(0, 10) + '...' + value.substring(value.length - 6)
+        : value;
+      console.log(`  ${key} = ${maskedValue}`);
+    }
+
     // Apply Claude environment variables from memory
     Object.assign(claudeEnv, claudeMemoryEnvVars);
+
+    // Compatibility: if ANTHROPIC_AUTH_TOKEN is set but ANTHROPIC_API_KEY is not, use AUTH_TOKEN as API_KEY
+    if (!claudeEnv.ANTHROPIC_API_KEY && claudeEnv.ANTHROPIC_AUTH_TOKEN) {
+      console.log('⚠️  Using ANTHROPIC_AUTH_TOKEN as ANTHROPIC_API_KEY (compatibility)');
+      claudeEnv.ANTHROPIC_API_KEY = claudeEnv.ANTHROPIC_AUTH_TOKEN;
+    }
+
+    // DO NOT fallback to system env - use only configured env vars
 
     // Apply custom environment variables from options (highest priority)
     if (options.env) {
@@ -425,12 +452,10 @@ export async function spawnClaude(
       
       // Clean up temporary image files
       await cleanupTempFiles(tempImagePaths, tempDir);
-      
-      if (code === 0) {
-        resolve();
-      } else {
-        reject(new Error(`Claude CLI exited with code ${code}`));
-      }
+
+      // 总是 resolve，不要 reject
+      // 错误信息已经通过 WebSocket 发送给客户端了
+      resolve();
     });
     
     // Handle process errors
@@ -448,8 +473,9 @@ export async function spawnClaude(
       
       // Clean up temporary image files on error
       await cleanupTempFiles(tempImagePaths, tempDir);
-      
-      reject(error);
+
+      // 总是 resolve，不要 reject
+      resolve();
     });
     
     // Handle stdin for interactive mode

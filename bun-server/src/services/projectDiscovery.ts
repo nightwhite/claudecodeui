@@ -279,13 +279,30 @@ export async function discoverProjects(): Promise<Project[]> {
     
     // Load manually added projects from config
     const manualProjects = await getManuallyAddedProjects();
-    
+
     console.log(`📝 Found ${manualProjects.length} manually added projects`);
-    
-    // Combine all projects
-    const allProjects = [...claudeProjects, ...manualProjects];
-    
-    console.log(`✅ Project discovery completed: ${allProjects.length} total projects`);
+
+    // Deduplicate projects: prefer Claude projects over manual ones (they have session data)
+    // Create a map of paths to projects
+    const projectMap = new Map<string, Project>();
+
+    // Add Claude projects first (higher priority)
+    for (const project of claudeProjects) {
+      projectMap.set(project.path, project);
+    }
+
+    // Add manual projects only if they don't already exist
+    for (const project of manualProjects) {
+      if (!projectMap.has(project.path)) {
+        projectMap.set(project.path, project);
+      } else {
+        console.log(`⏭️  Skipping duplicate manual project: ${project.path} (already exists as Claude project)`);
+      }
+    }
+
+    const allProjects = Array.from(projectMap.values());
+
+    console.log(`✅ Project discovery completed: ${allProjects.length} total projects (${claudeProjects.length} Claude + ${allProjects.length - claudeProjects.length} manual)`);
     return allProjects;
     
   } catch (error) {

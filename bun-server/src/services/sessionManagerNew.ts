@@ -66,9 +66,11 @@ async function parseJsonlSessions(filePath: string): Promise<ClaudeSession[]> {
                 }
               }
             }
-            
-            // Count messages instead of storing them all
-            session.messageCount = (session.messageCount || 0) + 1;
+
+            // Count only actual messages (user or assistant), not system events
+            if (entry.message?.role === 'user' || entry.message?.role === 'assistant') {
+              session.messageCount = (session.messageCount || 0) + 1;
+            }
             
             // Update last activity
             if (entry.timestamp) {
