@@ -1,18 +1,16 @@
 /**
  * PROJECT DISCOVERY AND MANAGEMENT SYSTEM
  * ========================================
- * 
- * This module manages project discovery for both Claude CLI and Cursor CLI sessions.
+ *
+ * This module manages project discovery for Claude CLI sessions.
  * Ported from Node.js to Bun with performance optimizations.
  */
 
 import { readdir, readFile, access } from 'fs/promises';
 import { createReadStream as createSyncReadStream } from 'fs';
 import { join, basename } from 'path';
-import { createHash } from 'crypto';
 import { createInterface } from 'readline';
 import { homedir } from 'os';
-import { Database } from 'bun:sqlite';
 import { getManuallyAddedProjects } from './projectConfig.ts';
 
 // Cache for project directory extraction
@@ -161,12 +159,6 @@ async function extractProjectDirectory(projectName: string): Promise<string> {
   return extractedPath;
 }
 
-/**
- * Get MD5 hash of project path for Cursor directory lookup
- */
-function getProjectHash(projectPath: string): string {
-  return createHash('md5').update(projectPath).digest('hex');
-}
 
 
 
@@ -314,6 +306,5 @@ export async function discoverProjects(): Promise<Project[]> {
 // Export utility functions for testing
 export {
   generateDisplayName,
-  extractProjectDirectory,
-  getProjectHash
+  extractProjectDirectory
 };

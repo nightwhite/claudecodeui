@@ -5,7 +5,7 @@
  * Handles Claude session discovery and management following the exact logic from the original Node.js server
  */
 
-import { readdir, access } from 'fs/promises';
+import { readdir, access, readFile, writeFile } from 'fs/promises';
 import { createReadStream } from 'fs';
 import { join, basename } from 'path';
 import { createInterface } from 'readline';

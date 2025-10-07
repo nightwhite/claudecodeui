@@ -27,7 +27,7 @@ export default new Elysia()
     detail: {
       tags: ["Projects"],
       summary: "Get All Projects",
-      description: "Retrieve all Claude and Cursor projects from ~/.claude/projects/ and manually added projects"
+      description: "Retrieve all Claude projects from ~/.claude/projects/ and manually added projects"
     }
   })
 
@@ -63,7 +63,7 @@ export default new Elysia()
     detail: {
       tags: ["Projects"],
       summary: "Get Project Sessions",
-      description: "Retrieve Claude or Cursor sessions for a specific project"
+      description: "Retrieve Claude sessions for a specific project"
     }
   })
 
@@ -107,7 +107,7 @@ export default new Elysia()
     detail: {
       tags: ["Projects"],
       summary: "Get Session Messages",
-      description: "Retrieve Claude or Cursor messages for a specific session"
+      description: "Retrieve Claude messages for a specific session"
     }
   })
 
